@@ -56,7 +56,6 @@
             </FlowPane.margin>
         </Button>
 
-        <ColorPicker fx:id="colorPicker" />
 
     </FlowPane>
 
@@ -65,6 +64,9 @@
         <Button fx:id="button_down" onAction="#onButtonDowneClick" text="下一层"/>
         <Button fx:id="button_top" onAction="#onButtonTopClick" text="到顶层"/>
         <Button fx:id="button_bottom" onAction="#onButtonBottomClick" text="到底层"/>
+
+        <ColorPicker fx:id="colorPicker" />
+        <ColorPicker fx:id="colorPicker_Line" />
     </FlowPane>
     <MainPane fx:id="mainPane" onMouseClicked="#onBoardClicked">
         <Canvas fx:id="canvas" height="500" width="900" />
