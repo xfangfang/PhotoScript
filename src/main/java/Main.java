@@ -19,7 +19,6 @@ public class Main extends Application {
 
         primaryStage.setTitle("PhotoScript");
 
-//        Group root = new Group();
         Scene scene = new Scene(root, 900,600 );
         primaryStage.setScene(scene);
         primaryStage.show();
