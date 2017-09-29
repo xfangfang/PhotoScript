@@ -21,6 +21,8 @@ import javafx.scene.shape.SVGPath;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import custonView.shape.OurImage;
+import custonView.shape.OurLine;
 
 import javax.imageio.ImageIO;
 import java.io.*;
@@ -98,7 +100,7 @@ public class Controller {
         button_1.setDisable(false);
         if(file != null) {
 //            drawPicture(file);
-            DragBox dragBox = new DragBox();
+            OurImage dragBox = new OurImage();
             dragBox.setContentNode(new ImageView(), (node, Parent) -> {
                 try {
                     ((ImageView)node).setImage(new Image(new FileInputStream(file)));
