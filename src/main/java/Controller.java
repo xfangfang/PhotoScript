@@ -1,6 +1,8 @@
 import custonView.DragBox;
 import custonView.MainPane;
 import custonView.shape.Ellipse;
+import custonView.shape.OurImage;
+import custonView.shape.OurLine;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
@@ -8,6 +10,8 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.Slider;
+import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -15,14 +19,10 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
-import javafx.scene.shape.ArcType;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.SVGPath;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import custonView.shape.OurImage;
-import custonView.shape.OurLine;
 
 import javax.imageio.ImageIO;
 import java.io.*;
@@ -39,6 +39,9 @@ public class Controller {
     public Button button_top;
     public Button button_bottom;
     public ColorPicker colorPicker_Line;
+    public TextArea textArea;
+    public Slider slider;
+    public Slider slider_rotate;
     private Stage stage;
     private boolean MousePressed = false;
     private DirectoryChooser directoryChooser = new DirectoryChooser();
@@ -54,14 +57,62 @@ public class Controller {
         this.directoryChooser.setTitle("选择保存目录");
         this.fileChooser.setTitle("打开图片");
 
-        colorPicker.setValue(Color.BLACK);
+        colorPicker.setValue(Color.TRANSPARENT);
+        colorPicker_Line.setValue(Color.BLACK);
         Background background = new Background(new BackgroundFill(Paint.valueOf("#FFF"),null,null));
         mainPane.setBackground(background);
+        mainPane.setNodeRequestChoose(node -> {
+                for (Node i :
+                        mainPane.getChildren()) {
+                    if(i instanceof DragBox){
+                        ((DragBox) i).setNotChoosen();
+                    }
+                }
+                node.setChoosen();
+                mainPane.setChoosenNode(node);
+
+                if(node.paintFill != null) {
+                    colorPicker.setValue(node.paintFill);
+                }
+                if(node.paintStroke != null) {
+                    colorPicker_Line.setValue(node.paintStroke);
+                }
+
+                slider_rotate.setValue(node.rotate);
+                slider.setValue(node.strokenWidth);
+        });
         colorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
             DragBox choosenNode = mainPane.getChoosenNode();
             if(choosenNode != null){
-                choosenNode.setColor(newValue.saturate());
+                if(newValue !=null) {
+                    choosenNode.setColor(newValue);
+                }
+            }else{
+                GraphicsContext gc = canvas.getGraphicsContext2D();
+                gc.setFill(newValue);
+                gc.fillRect(0,0,canvas.getWidth(),canvas.getHeight());
             }
+        });
+        colorPicker_Line.valueProperty().addListener((observable, oldValue, newValue) -> {
+            DragBox choosenNode = mainPane.getChoosenNode();
+            if(choosenNode != null && newValue !=null){
+                choosenNode.setLineColor(newValue);
+            }
+        });
+
+        slider.setMax(20);
+        slider.setMin(1);
+        slider.setValue(5);
+        slider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            mainPane.setLineWidth(newValue.doubleValue());
+        });
+
+        slider_rotate.setMax(180);
+        slider_rotate.setMin(-180);
+        slider_rotate.setValue(0);
+
+        slider_rotate.valueProperty().addListener((observable, oldValue, newValue) -> {
+            mainPane.setNodeRotate(newValue.doubleValue());
         });
     }
 
@@ -74,8 +125,7 @@ public class Controller {
 //        }
     }
 
-    private void writeObjectToFile(Object obj)
-    {
+    private void writeObjectToFile(Object obj) {
         File file =new File("test.psg");
         FileOutputStream out;
         try {
@@ -99,7 +149,6 @@ public class Controller {
         File file = fileChooser.showOpenDialog(this.stage);
         button_1.setDisable(false);
         if(file != null) {
-//            drawPicture(file);
             OurImage dragBox = new OurImage();
             dragBox.setContentNode(new ImageView(), (node, Parent) -> {
                 try {
@@ -110,15 +159,18 @@ public class Controller {
                     ((ImageView)node).fitWidthProperty().bind(Parent.widthProperty().subtract(20));
                     ((ImageView)node).fitHeightProperty().bind(Parent.heightProperty().subtract(20));
 
-                    mainPane.getChildren().add(dragBox);
+                    mainPane.getChildren().add(Parent);
+                    mainPane.setChooseListener(Parent);
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
             });
         }
+        mainPane.requestFocus();
     }
 
     public void onButtonSaveClick(ActionEvent event) {
+        mainPane.chooseNothing();
         button_save.setDisable(true);
         File file = directoryChooser.showDialog(this.stage);
         button_save.setDisable(false);
@@ -138,6 +190,8 @@ public class Controller {
             ((Ellipse)node).radiusYProperty().bind(root.heightProperty().divide(2).subtract(10));
             ((Ellipse)node).setSmooth(true);
             ((Ellipse)node).setFill(colorPicker.getValue());
+            ((Ellipse)node).setStroke(colorPicker_Line.getValue());
+            ((Ellipse)node).setStrokeWidth(5);
         });
         mainPane.getChildren()
                 .add(dragBox);
@@ -155,9 +209,53 @@ public class Controller {
             ((Rectangle)node).layoutXProperty().set(10);
             ((Rectangle)node).layoutYProperty().set(10);
             ((Rectangle)node).setFill(colorPicker.getValue());
+            ((Rectangle)node).setStroke(colorPicker_Line.getValue());
+            ((Rectangle)node).setStrokeWidth(5);
             ((Rectangle)node).setSmooth(true);
             root.setPrefWidth(200);
         });
+        mainPane.getChildren()
+                .add(dragBox);
+        mainPane.setChooseListener(dragBox);
+        dragBox.requestFocus();
+    }
+
+    public void onButtonArrowClick(ActionEvent actionEvent) {
+        addSvg("M20,20 120,20 120,0 160,30 120,60 120,40 20,40 z");
+    }
+
+    public void onButtonStarClick(ActionEvent actionEvent) {
+        addSvg("M50,10 75,90 10,40 90,40 25,90z");
+    }
+
+    public void onButonAutoCLick(ActionEvent actionEvent) {
+        addSvg(textArea.getText());
+    }
+
+    public void onBoardClicked(MouseEvent mouseEvent) {
+        mainPane.requestFocus();
+    }
+
+    public void onButtonUpClick(ActionEvent actionEvent) {
+        mainPane.up();
+    }
+
+    public void onButtonDowneClick(ActionEvent actionEvent) {
+        mainPane.down();
+    }
+
+    public void onButtonTopClick(ActionEvent actionEvent) {
+        mainPane.toTop();
+    }
+
+    public void onButtonBottomClick(ActionEvent actionEvent) {
+        mainPane.toBottom();
+    }
+
+
+    private void addSvg(String path){
+        DragBox dragBox = new DragBox();
+        dragBox.setSvgNode(path,colorPicker.getValue(),colorPicker_Line.getValue());
         mainPane.getChildren()
                 .add(dragBox);
         mainPane.setChooseListener(dragBox);
@@ -174,83 +272,11 @@ public class Controller {
         }
     }
 
-    private void drawPicture(File file){
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-        InputStream inputStream;
-        try {
-            inputStream = new FileInputStream(file);
-            gc.drawImage(new Image(inputStream),0,0);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void drawShapes() {
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-        gc.setFill(Color.GREEN);
-        gc.setStroke(Color.BLUE);
-        gc.setLineWidth(5);
-        gc.strokeLine(0, 0, 900, 0);
-        gc.strokeLine(0, 500, 900, 500);
-        gc.strokeLine(0, 0, 0, 500);
-        gc.strokeLine(900, 0, 900, 500);
-
-
-        gc.fillOval(10, 60, 30, 30);
-        gc.strokeOval(60, 60, 30, 30);
-        gc.fillRoundRect(110, 60, 30, 30, 10, 10);
-        gc.strokeRoundRect(160, 60, 30, 30, 10, 10);
-        gc.fillArc(10, 110, 30, 30, 45, 240, ArcType.OPEN);
-        gc.fillArc(60, 110, 30, 30, 45, 240, ArcType.CHORD);
-        gc.fillArc(110, 110, 30, 30, 45, 240, ArcType.ROUND);
-        gc.strokeArc(10, 160, 30, 30, 45, 240, ArcType.OPEN);
-        gc.strokeArc(60, 160, 30, 30, 45, 240, ArcType.CHORD);
-        gc.strokeArc(110, 160, 30, 30, 45, 240, ArcType.ROUND);
-        gc.fillPolygon(new double[]{10, 40, 10, 40},
-                new double[]{210, 210, 240, 240}, 4);
-        gc.strokePolygon(new double[]{60, 90, 60, 90},
-                new double[]{210, 210, 240, 240}, 4);
-        gc.strokePolyline(new double[]{110, 140, 110, 140},
-                new double[]{210, 210, 240, 240}, 4);
-    }
-
-    public void onBoardClicked(MouseEvent mouseEvent) {
-        mainPane.requestFocus();
-    }
-
-
-    public void onButtonArrowClick(ActionEvent actionEvent) {
-        DragBox dragBox = new DragBox();
-        dragBox.setContentNode(new SVGPath(), (node, root) -> {
-            ((SVGPath)node).contentProperty().setValue("123");
-            ((SVGPath)node).layoutXProperty().set(10);
-            ((SVGPath)node).layoutYProperty().set(10);
-            ((SVGPath)node).setFill(colorPicker.getValue());
-            ((SVGPath)node).setSmooth(true);
-            root.setPrefWidth(200);
-        });
+    public void onButtonLineClick(ActionEvent actionEvent) {
+        OurLine dragBox = new OurLine();
         mainPane.getChildren()
                 .add(dragBox);
-        mainPane.setChooseListener(dragBox);
+//        mainPane.setChooseListener(dragBox);
         dragBox.requestFocus();
-    }
-
-    public void onButtonUpClick(ActionEvent actionEvent) {
-        mainPane.up();
-    }
-
-    public void onButtonDowneClick(ActionEvent actionEvent) {
-        mainPane.down();
-
-    }
-
-    public void onButtonTopClick(ActionEvent actionEvent) {
-        mainPane.toTop();
-
-    }
-
-    public void onButtonBottomClick(ActionEvent actionEvent) {
-        mainPane.toBottom();
-
     }
 }

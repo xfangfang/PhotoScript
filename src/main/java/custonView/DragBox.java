@@ -6,6 +6,7 @@ import custonView.shape.Circle;
 import custonView.shape.Ellipse;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.geometry.Bounds;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.canvas.GraphicsContext;
@@ -17,6 +18,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.SVGPath;
 
 import java.io.Serializable;
 
@@ -445,13 +447,55 @@ public class DragBox extends Pane implements Serializable{
         }
     }
 
-    public DragBox setContentNode(Node node,OnBuildListener onBuildListener){
+    public void setContentNode(Node node,OnBuildListener onBuildListener){
         if(onBuildListener!=null){
             onBuildListener.onBuild(node,this);
         }
         getChildren().add(node);
         this.node = node;
-        return this;
+
+
+    }
+
+    public void setSvgNode(String path,Paint fill,Paint stroke){
+        this.node = new SVGPath();
+        ((SVGPath)node).setContent(path);
+        ((SVGPath)node).setFill(fill);
+        ((SVGPath)node).setStroke(stroke);
+        ((SVGPath)node).setStrokeWidth(5);
+        ((SVGPath)node).setSmooth(true);
+
+        Bounds bounds = node.boundsInLocalProperty().getValue();
+
+        final double height = bounds.getHeight();
+        final double width = bounds.getWidth();
+        double S = 20;
+
+        setPrefWidth(width+S);
+        setPrefHeight(height+S);
+
+        node.scaleYProperty().bind(heightProperty().
+                subtract(S).
+                divide(height));
+        node.scaleXProperty().bind(widthProperty().
+                subtract(S).
+                divide(width));
+
+        node.layoutXProperty().bind(widthProperty().
+                subtract(S).
+                divide(2).
+                subtract(width/2).
+                add(S/2).
+                subtract(bounds.getMinX()));
+        node.layoutYProperty().bind(heightProperty().
+                subtract(S).
+                divide(2).
+                subtract(height/2).
+                add(S/2)
+                .subtract(bounds.getMinY()));
+        getChildren().add(node);
+
+
     }
 
     public interface OnBuildListener{
@@ -459,6 +503,7 @@ public class DragBox extends Pane implements Serializable{
     }
 
     private void init(){
+
         setPrefWidth(Width.get());
         setPrefHeight(Height.get());
         layoutXProperty().bind(X);
@@ -579,13 +624,50 @@ public class DragBox extends Pane implements Serializable{
         this.chooseListener.request(this);
     }
 
-    public void setColor(Paint value){
+    public Color paintFill=Color.TRANSPARENT,paintStroke=Color.BLACK;
+    public double rotate=0,strokenWidth=5;
+
+    public void setColor(Color value){
+        this.paintFill = value;
         if(this.node instanceof Circle){
             ((Circle) this.node).setFill(value);
         }else if(this.node instanceof Ellipse){
             ((Ellipse) this.node).setFill(value);
         }else if(this.node instanceof Rectangle){
             ((Rectangle) this.node).setFill(value);
+        }else if(this.node instanceof SVGPath){
+            ((SVGPath) this.node).setFill(value);
         }
+    }
+
+    public void setLineColor(Color value){
+        this.paintStroke = value;
+        if(this.node instanceof Circle){
+            ((Circle) this.node).setStroke(value);
+        }else if(this.node instanceof Ellipse){
+            ((Ellipse) this.node).setStroke(value);
+        }else if(this.node instanceof Rectangle){
+            ((Rectangle) this.node).setStroke(value);
+        }else if(this.node instanceof SVGPath){
+            ((SVGPath) this.node).setStroke(value);
+        }
+    }
+
+    public void setLineWidth(double lineWidth){
+        this.strokenWidth = lineWidth;
+        if(this.node instanceof Circle){
+            ((Circle) this.node).setStrokeWidth(lineWidth);
+        }else if(this.node instanceof Ellipse){
+            ((Ellipse) this.node).setStrokeWidth(lineWidth);
+        }else if(this.node instanceof Rectangle){
+            ((Rectangle) this.node).setStrokeWidth(lineWidth);
+        }else if(this.node instanceof SVGPath){
+            ((SVGPath) this.node).setStrokeWidth(lineWidth);
+        }
+    }
+
+    public void setNodeRotate(double rotate){
+        this.rotate = rotate;
+        this.node.setRotate(rotate);
     }
 }

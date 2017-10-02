@@ -11,25 +11,9 @@ public class MainPane extends javafx.scene.layout.Pane {
     private requestChoose requestChooseListener;
     private DragBox choosenNode;
     public MainPane(){
-        requestChooseListener = node -> {
-            for (Node i :
-                    getChildren()) {
-                if(i instanceof DragBox){
-                    ((DragBox) i).setNotChoosen();
-                }
-            }
-            node.setChoosen();
-            choosenNode = node;
-        };
 
         setOnMouseReleased(event -> {
-            for (Node i :
-                    getChildren()) {
-                if(i instanceof DragBox){
-                    ((DragBox) i).setNotChoosen();
-                }
-            }
-            choosenNode = null;
+            chooseNothing();
         });
 
         setOnKeyReleased(event -> {
@@ -46,11 +30,19 @@ public class MainPane extends javafx.scene.layout.Pane {
     public void setChooseListener(DragBox box){
         box.setChooseListener(this.requestChooseListener);
     }
-
-
     public interface requestChoose{
         void request(DragBox node);
 
+    }
+
+    public void chooseNothing(){
+        for (Node i :
+                getChildren()) {
+            if(i instanceof DragBox){
+                ((DragBox) i).setNotChoosen();
+            }
+        }
+        choosenNode = null;
     }
 
     public DragBox getChoosenNode(){
@@ -92,5 +84,25 @@ public class MainPane extends javafx.scene.layout.Pane {
             getChildren().add(1,choosenNode);
             System.out.println(choosenNode);
         }
+    }
+
+    public void setLineWidth(double lineWidth){
+        if(choosenNode != null){
+            choosenNode.setLineWidth(lineWidth);
+        }
+    }
+
+    public void setNodeRotate(double rotate){
+        if(choosenNode != null){
+            choosenNode.setNodeRotate(rotate);
+        }
+    }
+
+    public void setNodeRequestChoose(requestChoose requestChooseListener){
+        this.requestChooseListener = requestChooseListener;
+    }
+
+    public void setChoosenNode(DragBox node){
+        this.choosenNode = node;
     }
 }
