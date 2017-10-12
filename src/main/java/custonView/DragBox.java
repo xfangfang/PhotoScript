@@ -19,6 +19,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
+import javafx.scene.text.Text;
 
 import java.io.Serializable;
 
@@ -637,6 +638,8 @@ public class DragBox extends Pane implements Serializable{
             ((Rectangle) this.node).setFill(value);
         }else if(this.node instanceof SVGPath){
             ((SVGPath) this.node).setFill(value);
+        }else if(this.node instanceof Text){
+            ((Text) this.node).setFill(value);
         }
     }
 
@@ -650,6 +653,8 @@ public class DragBox extends Pane implements Serializable{
             ((Rectangle) this.node).setStroke(value);
         }else if(this.node instanceof SVGPath){
             ((SVGPath) this.node).setStroke(value);
+        }else if(this.node instanceof Text){
+            ((Text) this.node).setStroke(value);
         }
     }
 
@@ -663,6 +668,8 @@ public class DragBox extends Pane implements Serializable{
             ((Rectangle) this.node).setStrokeWidth(lineWidth);
         }else if(this.node instanceof SVGPath){
             ((SVGPath) this.node).setStrokeWidth(lineWidth);
+        }else if(this.node instanceof Text){
+            ((Text) this.node).setStrokeWidth(lineWidth);
         }
     }
 

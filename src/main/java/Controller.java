@@ -20,6 +20,8 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -61,6 +63,13 @@ public class Controller {
         colorPicker_Line.setValue(Color.BLACK);
         Background background = new Background(new BackgroundFill(Paint.valueOf("#FFF"),null,null));
         mainPane.setBackground(background);
+        mainPane.setOnMouseReleased(event -> {
+            mainPane.chooseNothing();
+            if(mainPane.getBackGround() != null) {
+                colorPicker.setValue(mainPane.getBackGround());
+            }
+        });
+
         mainPane.setNodeRequestChoose(node -> {
                 for (Node i :
                         mainPane.getChildren()) {
@@ -90,6 +99,7 @@ public class Controller {
             }else{
                 GraphicsContext gc = canvas.getGraphicsContext2D();
                 gc.setFill(newValue);
+                mainPane.setBackGround(newValue);
                 gc.fillRect(0,0,canvas.getWidth(),canvas.getHeight());
             }
         });
@@ -123,6 +133,14 @@ public class Controller {
 //            System.out.println(i.getLayoutX() +" "+i.getLayoutY() +" ");
 //            writeObjectToFile(i);
 //        }
+    }
+
+    public void onButtonSaveProjClick(ActionEvent actionEvent) {
+        DragBox box = new DragBox();
+        writeObjectToFile(box);
+    }
+
+    public void onButtonLoadProjClick(ActionEvent actionEvent) {
     }
 
     private void writeObjectToFile(Object obj) {
@@ -279,4 +297,31 @@ public class Controller {
 //        mainPane.setChooseListener(dragBox);
         dragBox.requestFocus();
     }
+
+    public void onButtonTextClick(ActionEvent actionEvent) {
+        DragBox dragBox = new DragBox();
+        dragBox.setContentNode(new Text(), (node, parent) -> {
+            ((Text)node).setFont(new Font(50));
+            ((Text)node).setText("我爱基佬陈");
+
+            double size = ((Text)node).getFont().getSize();
+            parent.setPrefWidth(((Text)node).getText().length()*size+20);
+            parent.setPrefHeight(size+20);
+            parent.layoutBoundsProperty().addListener((observable, oldValue, newValue) -> {
+                double len = ((Text)node).getText().length();
+                double sizeX = newValue.getWidth()-20;
+                sizeX/=len;
+                double sizeY = newValue.getHeight()-20;
+                double m = Math.min(sizeX,sizeY);
+                ((Text)node).setFont(new Font(m));
+                ((Text)node).setX(newValue.getWidth()/2-len*m/2);
+                ((Text)node).setY(newValue.getHeight()/2 +m/2-m/10);
+            });
+        });
+        mainPane.getChildren().add(dragBox);
+        mainPane.setChooseListener(dragBox);
+        dragBox.requestFocus();
+    }
+
+
 }

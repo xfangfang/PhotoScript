@@ -2,20 +2,21 @@ package custonView;
 
 import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
+import javafx.scene.paint.Color;
+
+import java.io.Serializable;
+
 
 /**
  * Created by FANGs on 2017/9/27.
  */
-public class MainPane extends javafx.scene.layout.Pane {
+public class MainPane extends javafx.scene.layout.Pane implements Serializable{
 
     private requestChoose requestChooseListener;
     private DragBox choosenNode;
+    private Color backGround;
+
     public MainPane(){
-
-        setOnMouseReleased(event -> {
-            chooseNothing();
-        });
-
         setOnKeyReleased(event -> {
             if(event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.BACK_SPACE){
                 if(choosenNode != null){
@@ -104,5 +105,13 @@ public class MainPane extends javafx.scene.layout.Pane {
 
     public void setChoosenNode(DragBox node){
         this.choosenNode = node;
+    }
+
+    public Color getBackGround() {
+        return backGround;
+    }
+
+    public void setBackGround(Color backGround) {
+        this.backGround = backGround;
     }
 }
