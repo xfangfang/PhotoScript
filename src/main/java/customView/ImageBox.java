@@ -1,18 +1,45 @@
-package custonView.shape;
-
-import custonView.DragBox;
+package customView;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
+import tools.SHAPE;
+import tools.ProjectSaver;
 
-public class OurImage extends DragBox{
+public class ImageBox extends DragBox {
     private ContextMenu contextFileMenu = new ContextMenu();
-    public OurImage(){
+    public ImageBox(){
         super();
         init();
     }
+    public ImageBox(double x, double y, double w, double h, SHAPE.TYPE type, double rotate, double a, double r, double g, double b, double fa, double fr, double fg, double fb){
+        super(x, y, w,h, type, rotate,0,a, r, g, b, fa, fr, fg, fb);
+        init();
+    }
+    @Override
+    public ProjectSaver getData(){
+        return super.getData();
+    }
+    public int [] getP(){
+        Image tempImage = ((ImageView)node).getImage();
+        PixelReader pixelReader = tempImage.getPixelReader();
+        int [] buffer = new int[((int)tempImage.getWidth() * (int)tempImage.getWidth()) + 2];
+        int tempH, tempW;
+        tempH = (int)tempImage.getHeight();
+        tempW = (int)tempImage.getWidth();
+        int k = 0;
+        buffer[k++] = tempW;
+        buffer[k++] = tempH;
+        for(int i = 0; i < tempW; i++){
+            for(int j = 0; j < tempH; j++){
+                buffer[k++] = pixelReader.getArgb(i, j);
+            }
+        }
+        return buffer;
+    }
+
+
     private void init(){
         MenuItem item1 = new MenuItem("明亮");
         item1.setOnAction(e -> imagePixeOperator(0));
@@ -43,6 +70,7 @@ public class OurImage extends DragBox{
             }
         });
     }
+
     public void imagePixeOperator(int type){
         ImageView tempImageView = null;
         if(ImageView.class.isInstance(getChildren().get(1))) {

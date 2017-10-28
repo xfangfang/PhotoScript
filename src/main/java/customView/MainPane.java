@@ -1,16 +1,15 @@
-package custonView;
+package customView;
 
 import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 
-import java.io.Serializable;
 
 
 /**
  * Created by FANGs on 2017/9/27.
  */
-public class MainPane extends javafx.scene.layout.Pane implements Serializable{
+public class MainPane extends javafx.scene.layout.Pane{
 
     private requestChoose requestChooseListener;
     private DragBox choosenNode;
@@ -40,7 +39,7 @@ public class MainPane extends javafx.scene.layout.Pane implements Serializable{
         for (Node i :
                 getChildren()) {
             if(i instanceof DragBox){
-                ((DragBox) i).setNotChoosen();
+                ((DragBox) i).clearConner();
             }
         }
         choosenNode = null;

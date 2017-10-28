@@ -19,7 +19,7 @@ public class Main extends Application {
 
         primaryStage.setTitle("PhotoScript");
 
-        Scene scene = new Scene(root, 900,600 );
+        Scene scene = new Scene(root, 1000,800 );
         primaryStage.setScene(scene);
         primaryStage.show();
     }
