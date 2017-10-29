@@ -37,6 +37,7 @@
         <Button fx:id="button_down" onAction="#onButtonDowneClick" text="下一层"/>
         <Button fx:id="button_top" onAction="#onButtonTopClick" text="到顶层"/>
         <Button fx:id="button_bottom" onAction="#onButtonBottomClick" text="到底层"/>
+        <Label fx:id="labelHint"/>
 
     </FlowPane>
 
