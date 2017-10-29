@@ -27,7 +27,7 @@ public class LineBox extends Line {
 
 
     public LineBox(){
-        super(10, 10, 30, 30);
+        super(10, 10, 50, 50);
         init();
     }
     public LineBox(double x1, double y1, double x2, double y2, double x, double y){
@@ -46,7 +46,7 @@ public class LineBox extends Line {
 
 
     private void init(){
-        setStrokeWidth(3);
+        setStrokeWidth(10);
         endXProperty().bind(x1);
         endYProperty().bind(y1);
         startXProperty().bind(x2);
@@ -105,14 +105,14 @@ public class LineBox extends Line {
         cursor = POINT.C;
         if((tempX - x1.getValue()) < 10 && (tempY - y1.getValue()) < 10){
             cursor = POINT.L;
-            setCursor(Cursor.W_RESIZE);
+            setCursor(Cursor.HAND);
             return ;
         }else if((x2.getValue()-tempX) < 10 && (y2.getValue() - tempY) < 10) {
-            setCursor(Cursor.E_RESIZE);
+            setCursor(Cursor.HAND);
             cursor = POINT.R;
             return ;
         }
-        setCursor(Cursor.HAND);
+        setCursor(Cursor.CROSSHAIR);
     }
 
 }

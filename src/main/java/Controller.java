@@ -23,10 +23,12 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Ellipse;
 import javafx.scene.shape.Path;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import tools.PaintBrush;
 import tools.PictureUploadUtil;
 import tools.ProjectSaver;
 import tools.SerLine;
@@ -73,20 +75,20 @@ public class Controller {
         canvas = new Canvas();
         canvas.setHeight(700);
         canvas.setWidth(900);
+
         mainPane.getChildren().add(canvas);
         vbox.getChildren().add(mainPane);
         mainPane.setBackground(background);
         mainPane.setOnMouseReleased(event -> {
+            System.out.println("release");
             mainPane.chooseNothing();
-            if (mainPane.getBackGround() != null) {
-                colorPicker.setValue(mainPane.getBackGround());
-            }
-        });
-        mainPane.setOnMouseClicked(event -> {
-            mainPane.requestFocus();
+//            if (mainPane.getBackGround() != null) {
+//                colorPicker.setValue(mainPane.getBackGround());
+//            }
         });
 
         mainPane.setNodeRequestChoose(node -> {
+            System.out.println("choose ");
             mainPane.chooseNothing();
             node.drawConner();
             mainPane.setChoosenNode(node);
@@ -122,8 +124,8 @@ public class Controller {
         });
 
         slider.setMax(20);
-        slider.setMin(1);
-        slider.setValue(5);
+        slider.setMin(0);
+        slider.setValue(2);
         slider.valueProperty().addListener((observable, oldValue, newValue) -> {
             mainPane.setLineWidth(newValue.doubleValue());
         });
@@ -140,7 +142,11 @@ public class Controller {
     public void stop() {
     }
 
-    //chenguang
+    /**
+     * 加载工程文件
+     * @param actionEvent
+     * @throws ClassNotFoundException
+     */
     public void onButtonLoadProjClick(ActionEvent actionEvent) throws ClassNotFoundException {
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PhotoScrip file -- PSG (*.psg)", "*.psg"));
@@ -216,7 +222,10 @@ public class Controller {
     }
 
 
-    //chenguang
+    /**
+     * 保存工程文件
+     * @param event
+     */
     public void onButtonSaveProjClick(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setInitialFileName("project");
@@ -318,7 +327,7 @@ public class Controller {
      * @param event
      */
     public void onButtonCircleClick(ActionEvent event) {
-        circle(new DragBox(), 10, 0, colorPicker.getValue(), colorPicker_Line.getValue());
+        circle(new DragBox(), slider.getValue(), slider_rotate.getValue(), colorPicker.getValue(), colorPicker_Line.getValue());
     }
 
     /**
@@ -328,7 +337,7 @@ public class Controller {
      */
     public void onButtonRectangleClick(ActionEvent event) {
         DragBox dragBox = new DragBox();
-        rectangle(dragBox, 10, 0, colorPicker.getValue(), colorPicker_Line.getValue());
+        rectangle(dragBox, slider.getValue(), slider_rotate.getValue(), colorPicker.getValue(), colorPicker_Line.getValue());
     }
 
     /**
@@ -394,22 +403,42 @@ public class Controller {
     }
 
 
+    /**
+     * 节点向上一层移动
+     * @param actionEvent
+     */
     public void onButtonUpClick(ActionEvent actionEvent) {
         mainPane.up();
     }
 
+    /**
+     * 节点向下一层移动
+     * @param actionEvent
+     */
     public void onButtonDowneClick(ActionEvent actionEvent) {
         mainPane.down();
     }
 
+    /**
+     * 节点移动到顶层
+     * @param actionEvent
+     */
     public void onButtonTopClick(ActionEvent actionEvent) {
         mainPane.toTop();
     }
 
+    /**
+     * 节点移动到底层
+     * @param actionEvent
+     */
     public void onButtonBottomClick(ActionEvent actionEvent) {
         mainPane.toBottom();
     }
 
+    /**
+     * 添加一个SvgPath类型的节点
+     * @param path svgPath的输入字符串
+     */
     private void svg(String path) {
         DragBox dragBox = new DragBox();
         dragBox.setSvgNode(path, colorPicker.getValue(), colorPicker_Line.getValue());
@@ -545,6 +574,11 @@ public class Controller {
         mainPane.setChooseListener(dragBox);
     }
 
+    /**
+     * 保存图片
+     * @param view 要保存的View
+     * @param file 保存的文件
+     */
     private void snapshot(Node view, File file) {
         Image image = view.snapshot(null, null);
         try {
@@ -575,6 +609,60 @@ public class Controller {
         }
     }
 
+    /**
+     * 复制选中的组件
+     * @param actionEvent
+     */
+    public void onButtonCopyClick(ActionEvent actionEvent) {
+        DragBox dragBox = mainPane.getChoosenNode();
+        DragBox newBox = new DragBox(dragBox);
+        Node node = dragBox.getChildren().get(1);
+        if(node instanceof Ellipse){
+            circle(newBox,dragBox.strokeWidth,dragBox.rotate,dragBox.paintFill,dragBox.paintStroke);
+        }else if(node instanceof Rectangle){
+            rectangle(newBox,dragBox.strokeWidth,dragBox.rotate,dragBox.paintFill,dragBox.paintStroke);
+        }else if(node instanceof SVGPath){
+
+        }else if(node instanceof ImageView){
+
+        }else if(node instanceof Text){
+
+        }else if(node instanceof Path){
+
+        }
+    }
+
+    /**
+     * 删除选中的组件
+      * @param actionEvent
+     */
+    public void onButtonDeleteClick(ActionEvent actionEvent) {
+        if(mainPane.getChoosenNode() != null){
+            mainPane.getChildren().remove(mainPane.getChoosenNode());
+            mainPane.setChoosenNode(null);
+        }
+    }
+
+    /**
+     * 按钮画笔操作被点击
+     * @param actionEvent
+     */
+    public void onButtonPaintClick(ActionEvent actionEvent) {
+        mainPane.chooseNothing();
+        new PaintBrush().paint(canvas,colorPicker_Line,slider,mainPane);
+    }
+
+    /**
+     * 清空画板
+     * @param actionEvent
+     */
+    public void onButtonClearClick(ActionEvent actionEvent) {
+        mainPane.getChildren().remove(1,mainPane.getChildren().size());
+    }
+
+    /**
+     * 文件上传类
+     */
     private class uploadTask extends Task<String> {
         private File file;
 

@@ -17,6 +17,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Ellipse;
+import javafx.scene.shape.Path;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Text;
@@ -28,7 +29,7 @@ import java.io.Serializable;
 
 public class DragBox extends Pane implements Serializable {
 
-    private POINT cursor;
+    private POINT cursor = POINT.OT;
     public Node node;
     private Canvas canvas;
     private boolean isShitDown = false;
@@ -39,6 +40,7 @@ public class DragBox extends Pane implements Serializable {
     public double rotate = 0, strokeWidth = 0;
     private MainPane.requestChoose chooseListener;
     private boolean isLoadFromfile;
+    private boolean isConnerShow;
 
 
     //leftTop,top,rightTop......Bottom,rightBottom,others
@@ -47,14 +49,27 @@ public class DragBox extends Pane implements Serializable {
     }
 
     //this view's position
-    private DoubleProperty X = new SimpleDoubleProperty(450);
-    private DoubleProperty Y = new SimpleDoubleProperty(200);
+    public DoubleProperty X = new SimpleDoubleProperty(450);
+    public DoubleProperty Y = new SimpleDoubleProperty(200);
     private double deltaX, deltaY;
 
     //this view's height and width
     public DoubleProperty Width = new SimpleDoubleProperty(0);
     public DoubleProperty Height = new SimpleDoubleProperty(0);
     public DoubleProperty Radius = new SimpleDoubleProperty(0);
+
+    public DragBox(DragBox dragBox){
+        Width.set(dragBox.getWidth());
+        Height.set(dragBox.getHeight());
+        X = new SimpleDoubleProperty(dragBox.getLayoutX()+10);
+        Y = new SimpleDoubleProperty(dragBox.getLayoutY()+10);
+        this.rotate = dragBox.rotate;
+        this.strokeWidth = dragBox.strokeWidth;
+        this.type = dragBox.type;
+        this.paintStroke = dragBox.paintStroke;
+        this.paintFill = dragBox.paintFill;
+        init();
+    }
 
     public DragBox() {
         Width.set(100);
@@ -81,7 +96,10 @@ public class DragBox extends Pane implements Serializable {
     private SHAPE.TYPE type;
 
     private POINT switchPoint(MouseEvent event) {
-
+        if(!isConnerShow) {
+            cursor = POINT.OT;
+            return cursor;
+        }
         double x = event.getX();
         double y = event.getY();
         double height = getPrefHeight();
@@ -234,6 +252,7 @@ public class DragBox extends Pane implements Serializable {
     }
 
     private void switchDrag(MouseEvent event) {
+        if(!isConnerShow) return;
         mouseDragX = event.getSceneX();
         mouseDragY = event.getSceneY();
         double min;
@@ -468,14 +487,19 @@ public class DragBox extends Pane implements Serializable {
                 setCursor(Cursor.SE_RESIZE);
                 break;
             default:
-                setCursor(Cursor.HAND);
+                setCursor(Cursor.DEFAULT);
                 break;
         }
     }
 
+    /**
+     * 向DragBox添加一般性节点时调用
+     * @param node 一般节点
+     * @param onBuildListener 在构建节点时使用监听器可以使代码更加简洁
+     */
     public void setContentNode(Node node, OnBuildListener onBuildListener) {
         this.node = node;
-        getChildren().add(0, node);
+        getChildren().add( node);
 
         if (onBuildListener != null) {
             onBuildListener.onBuild(node, this);
@@ -487,10 +511,17 @@ public class DragBox extends Pane implements Serializable {
         } else if (this.node instanceof Text) {
             this.type = SHAPE.TYPE.TEXT;
         }
+        initNode();
     }
 
     private String svgPath;
 
+    /**
+     * 在添加svg型节点时调用
+     * @param path svg节点的字符信息
+     * @param fill svg节点的填充信息
+     * @param stroke svg节点的边框填充信息
+     */
     public void setSvgNode(String path, Paint fill, Paint stroke) {
         this.node = new SVGPath();
         this.node.setRotate(rotate);
@@ -536,22 +567,27 @@ public class DragBox extends Pane implements Serializable {
                 subtract(height / 2).
                 add(S / 2)
                 .subtract(bounds.getMinY()));
-        getChildren().add(0, node);
+        getChildren().add( node);
+        initNode();
     }
 
+    /**
+     * 在向DragBox添加子节点时调用
+     * 使代码简洁易懂
+     */
     public interface OnBuildListener {
         void onBuild(Node node, DragBox Parent);
     }
 
+    /**
+     * 初始化DragBox的基础参数和设置各种监听函数
+     */
     private void init() {
 
         setPrefWidth(Width.get());
         setPrefHeight(Height.get());
         layoutXProperty().bind(X);
         layoutYProperty().bind(Y);
-
-//        Background background = new Background(new BackgroundFill(Paint.valueOf("#300"),null,null));
-//        setBackground(background);
 
 
         layoutBoundsProperty().addListener((observable, oldValue, newValue) -> {
@@ -568,6 +604,7 @@ public class DragBox extends Pane implements Serializable {
 
 
         setOnMousePressed(event -> {
+            if(!isConnerShow)return;
             if (chooseListener != null) {
                 chooseListener.request(this);
             }
@@ -575,6 +612,7 @@ public class DragBox extends Pane implements Serializable {
             deltaX = event.getX();
             deltaY = event.getY();
             isMousePress = true;
+            event.consume();
         });
 
 
@@ -586,21 +624,7 @@ public class DragBox extends Pane implements Serializable {
             setCursor(event);
         });
 
-        canvas = new Canvas();
 
-        canvas.heightProperty().addListener(observable -> {
-            clearConner();
-            drawConner();
-        });
-
-        canvas.widthProperty().addListener(observable -> {
-            clearConner();
-            drawConner();
-        });
-
-        canvas.widthProperty().bind(Width);
-        canvas.heightProperty().bind(Height);
-        getChildren().add(canvas);
 
         setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.SHIFT) {
@@ -615,12 +639,55 @@ public class DragBox extends Pane implements Serializable {
                 updateConner();
             }
         });
+
+        initCanvas();
+    }
+
+    /**
+     * 初始化背景绘画节点
+     */
+    private void initCanvas(){
+        canvas = new Canvas();
+        canvas.heightProperty().addListener(observable -> {
+            clearConner();
+            drawConner();
+        });
+
+        canvas.widthProperty().addListener(observable -> {
+            clearConner();
+            drawConner();
+        });
+
+        canvas.widthProperty().bind(Width);
+        canvas.heightProperty().bind(Height);
+        getChildren().add(canvas);
+    }
+
+    /**
+     * 初始化节点的鼠标事件监听函数
+     */
+    private void initNode(){
+        node.setOnMouseMoved(event -> {
+            setCursor(Cursor.HAND);
+            cursor = POINT.OT;
+            event.consume();
+        });
+        node.setOnMousePressed(event -> {
+            if (chooseListener != null) {
+                chooseListener.request(this);
+            }
+            drawConner();
+            deltaX = event.getX();
+            deltaY = event.getY();
+            isMousePress = true;
+        });
     }
 
     /**
      * 设置图形节点为选中样式
      */
     public void drawConner() {
+        isConnerShow = true;
 //        System.out.println("draw conner");
         double height = getPrefHeight();
         double width = getPrefWidth();
@@ -657,6 +724,7 @@ public class DragBox extends Pane implements Serializable {
      */
     public void clearConner() {
 //        System.out.println("clear conner");
+        isConnerShow = false;
         double height = getPrefHeight();
         double width = getPrefWidth();
         GraphicsContext gc = canvas.getGraphicsContext2D();
@@ -664,6 +732,10 @@ public class DragBox extends Pane implements Serializable {
     }
 
 
+    /**
+     * 添加选中监听器，并默认添加选中
+     * @param listener
+     */
     public void setChooseListener(MainPane.requestChoose listener) {
         this.chooseListener = listener;
         this.chooseListener.request(this);
@@ -675,7 +747,6 @@ public class DragBox extends Pane implements Serializable {
      * @param value
      */
     public void setColor(Color value) {
-//        System.out.println("set fill "+value);
         this.paintFill = value;
         if (this.node instanceof Ellipse) {
             ((Ellipse) this.node).setFill(value);
@@ -695,8 +766,6 @@ public class DragBox extends Pane implements Serializable {
      */
     public void setLineColor(Color value) {
         this.paintStroke = value;
-//        System.out.println("set line "+value);
-
         if (this.node instanceof Ellipse) {
             ((Ellipse) this.node).setStroke(value);
         } else if (this.node instanceof Rectangle) {
@@ -705,6 +774,8 @@ public class DragBox extends Pane implements Serializable {
             ((SVGPath) this.node).setStroke(value);
         } else if (this.node instanceof Text) {
             ((Text) this.node).setStroke(value);
+        }else if(this.node instanceof Path){
+            ((Path)this.node).setStroke(value);
         }
     }
 
@@ -714,8 +785,6 @@ public class DragBox extends Pane implements Serializable {
      * @param lineWidth
      */
     public void setLineWidth(double lineWidth) {
-//        System.out.println("set line width "+lineWidth);
-
         this.strokeWidth = lineWidth;
         if (this.node instanceof Ellipse) {
             ((Ellipse) this.node).setStrokeWidth(lineWidth);
@@ -725,6 +794,8 @@ public class DragBox extends Pane implements Serializable {
             ((SVGPath) this.node).setStrokeWidth(lineWidth);
         } else if (this.node instanceof Text) {
             ((Text) this.node).setStrokeWidth(lineWidth);
+        }else if(this.node instanceof Path){
+            ((Path)this.node).setStrokeWidth(lineWidth);
         }
     }
 
@@ -734,11 +805,14 @@ public class DragBox extends Pane implements Serializable {
      * @param rotate
      */
     public void setNodeRotate(double rotate) {
-//        System.out.println("set rotate "+rotate);
         this.rotate = rotate;
         this.node.setRotate(rotate);
     }
 
+    /**
+     * 用于序列化储存
+     * @return 返回内部节点的所有参数
+     */
     public ProjectSaver getData() {
         double a = paintStroke.getOpacity();
         double r = paintStroke.getRed();
