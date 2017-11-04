@@ -1,13 +1,14 @@
 package tools;
 
 import customView.DragBox;
+import customView.DragBoxWithLine;
 import customView.ImageBox;
 
 import java.io.Serializable;
 
 public class ProjectSaver implements Serializable {
-    public double x;
-    public double y;
+    public double x,xStart,xEnd;
+    public double y,yStart,yEnd;
     public double w;
     public double h;
     public double r, g, b, a;
@@ -21,6 +22,7 @@ public class ProjectSaver implements Serializable {
     public String svgPath;
     public String text;
     public double fontSize;
+    public String fontFamily;
 
     public void setSvgPath(String svgPath) {
         this.svgPath = svgPath;
@@ -46,21 +48,22 @@ public class ProjectSaver implements Serializable {
         this.fb = fb;
     }
 
-    public void setTextAndFont(String text, double fontSize) {
+    public void setTextAndFont(String text, double fontSize,String fontFamily) {
         this.text = text;
         this.fontSize = fontSize;
+        this.fontFamily = fontFamily;
     }
 
     public String getText() {
         return text;
     }
 
-    public double getFontSize() {
-        return fontSize;
-    }
-
     public DragBox construtDragBox() {
         return new DragBox(x, y, w, h, type, rotate, strokeWidth, a, r, g, b, fa, fr, fg, fb);
+    }
+
+    public DragBoxWithLine construtLineDragBox() {
+        return new DragBoxWithLine(x, y, w, h, type, rotate, strokeWidth, a, r, g, b, fa, fr, fg, fb);
     }
 
     public ImageBox constructImage() {

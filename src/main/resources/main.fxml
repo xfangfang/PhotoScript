@@ -1,133 +1,147 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import customView.MainPane?>
-<?import javafx.geometry.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.canvas.Canvas?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<VBox fx:id="vbox" prefHeight="299.0" prefWidth="441.0" xmlns="http://javafx.com/javafx/8.0.112"
-      xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller">
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ColorPicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.VBox?>
 
-    <FlowPane>
-        <Button fx:id="button_save" mnemonicParsing="false" onAction="#onButtonSaveClick" text="保存图片">
-            <padding>
-                <Insets bottom="2.0" left="15.0" right="15.0" top="2.0"/>
-            </padding>
-            <FlowPane.margin>
-                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0"/>
-            </FlowPane.margin>
-        </Button>
-        <Button fx:id="button_save_Proj" mnemonicParsing="false" onAction="#onButtonSaveProjClick" text="保存工程">
-            <padding>
-                <Insets bottom="2.0" left="15.0" right="15.0" top="2.0"/>
-            </padding>
-            <FlowPane.margin>
-                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0"/>
-            </FlowPane.margin>
-        </Button>
-        <Button fx:id="button_load_Proj" mnemonicParsing="false" onAction="#onButtonLoadProjClick" text="读取工程">
-            <padding>
-                <Insets bottom="2.0" left="15.0" right="15.0" top="2.0"/>
-            </padding>
-            <FlowPane.margin>
-                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0"/>
-            </FlowPane.margin>
-        </Button>
-        <Button fx:id="button_up" onAction="#onButtonUpClick" text="上一层"/>
-        <Button fx:id="button_down" onAction="#onButtonDowneClick" text="下一层"/>
-        <Button fx:id="button_top" onAction="#onButtonTopClick" text="到顶层"/>
-        <Button fx:id="button_bottom" onAction="#onButtonBottomClick" text="到底层"/>
-        <Button fx:id="button_copy" onAction="#onButtonCopyClick" text="复制"/>
-        <Button fx:id="button_delete" onAction="#onButtonDeleteClick" text="删除"/>
-        <Button fx:id="button_clear" onAction="#onButtonClearClick" text="清空"/>
-        <Label fx:id="labelHint"/>
+<VBox fx:id="vbox" prefHeight="950.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Controller">
 
+    <FlowPane fx:id="pane1" prefHeight="90.0" prefWidth="1000.0">
+
+        <Button fx:id="button_save" onAction="#onButtonSaveClick" text="保存图片">
+            <FlowPane.margin>
+                <Insets left="15.0"  />
+            </FlowPane.margin>
+        </Button>
+        <Button fx:id="button_save_Proj" onAction="#onButtonSaveProjClick" text="保存工程"/>
+        <Button fx:id="button_create_Proj" onAction="#onButtonCreateProjClick" text="新建工程"/>
+        <Button fx:id="button_load_Proj" onAction="#onButtonLoadProjClick" text="读取工程">
+            <FlowPane.margin>
+                <Insets right="15.0" top="15.0" bottom="15.0"  />
+            </FlowPane.margin>
+        </Button>
+
+        <Button fx:id="button_up" onAction="#onButtonUpClick" text="上一层" />
+        <Button fx:id="button_down" onAction="#onButtonDownClick" text="下一层" />
+        <Button fx:id="button_top" onAction="#onButtonTopClick" text="到顶层" />
+        <Button fx:id="button_bottom" onAction="#onButtonBottomClick" text="到底层" >
+            <FlowPane.margin>
+                <Insets right="15.0"  />
+            </FlowPane.margin>
+        </Button>
+        <Button fx:id="button_copy" onAction="#onButtonCopyClick" text="复制" />
+        <Button fx:id="button_delete" onAction="#onButtonDeleteClick" text="删除" />
+        <Button fx:id="button_clear" onAction="#onButtonClearClick" text="清空" />
+        <Label fx:id="labelHint" textFill="azure">
+            <FlowPane.margin>
+                <Insets left="15.0" />
+            </FlowPane.margin>
+        </Label>
     </FlowPane>
 
-    <FlowPane>
-        <Button fx:id="button_1" mnemonicParsing="false" onAction="#onButtonOpenImageClick" text="图片">
-            <padding>
-                <Insets bottom="2.0" left="15.0" right="15.0" top="2.0"/>
-            </padding>
-            <FlowPane.margin>
-                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0"/>
-            </FlowPane.margin>
-        </Button>
-        <Button fx:id="button_paint" mnemonicParsing="false" onAction="#onButtonPaintClick" text="笔">
-            <padding>
-                <Insets bottom="2.0" left="15.0" right="15.0" top="2.0"/>
-            </padding>
-            <FlowPane.margin>
-                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0"/>
-            </FlowPane.margin>
-        </Button>
-        <Button fx:id="button_circle" mnemonicParsing="false" onAction="#onButtonCircleClick" text="圆">
-            <padding>
-                <Insets bottom="2.0" left="15.0" right="15.0" top="2.0"/>
-            </padding>
-            <FlowPane.margin>
-                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0"/>
-            </FlowPane.margin>
-        </Button>
-        <Button fx:id="button_rectangle" mnemonicParsing="false" onAction="#onButtonRectangleClick" text="四边形">
-            <padding>
-                <Insets bottom="2.0" left="15.0" right="15.0" top="2.0"/>
-            </padding>
-            <FlowPane.margin>
-                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0"/>
-            </FlowPane.margin>
-        </Button>
-        <Button fx:id="button_line" mnemonicParsing="false" onAction="#onButtonLineClick" text="线">
-            <padding>
-                <Insets bottom="2.0" left="15.0" right="15.0" top="2.0"/>
-            </padding>
-            <FlowPane.margin>
-                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0"/>
-            </FlowPane.margin>
-        </Button>
-        <Button fx:id="button_star" mnemonicParsing="false" onAction="#onButtonStarClick" text="五角星">
-            <padding>
-                <Insets bottom="2.0" left="15.0" right="15.0" top="2.0"/>
-            </padding>
-            <FlowPane.margin>
-                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0"/>
-            </FlowPane.margin>
-        </Button>
-        <Button fx:id="button_arrow" mnemonicParsing="false" onAction="#onButtonArrowClick" text="箭头">
-            <padding>
-                <Insets bottom="2.0" left="15.0" right="15.0" top="2.0"/>
-            </padding>
-            <FlowPane.margin>
-                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0"/>
-            </FlowPane.margin>
-        </Button>
-        <Button fx:id="button_text" mnemonicParsing="false" onAction="#onButtonTextClick" text="文字">
-            <padding>
-                <Insets bottom="2.0" left="15.0" right="15.0" top="2.0"/>
-            </padding>
-            <FlowPane.margin>
-                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0"/>
-            </FlowPane.margin>
-        </Button>
+    <AnchorPane prefHeight="800.0" prefWidth="1000.0">
+        <FlowPane fx:id="btnFlowPane" layoutY="100" orientation="VERTICAL" prefHeight="550.0" prefWidth="20.0">
+            <Button fx:id="button_line" mnemonicParsing="false" onAction="#onButtonLineClick" prefHeight="48" prefWidth="48">
+                <padding>
+                    <Insets bottom="2.0" left="15.0" right="15.0" top="2.0" />
+                </padding>
+                <FlowPane.margin>
+                    <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                </FlowPane.margin>
+            </Button>
 
-        <TextArea fx:id="textArea" maxHeight="20" text="M10 80 C 40 10, 65 10, 95 80 S 150 150, 180 80"/>
+            <Button fx:id="button_pic" mnemonicParsing="false" onAction="#onButtonOpenImageClick" prefHeight="48" prefWidth="48">
+                <padding>
+                    <Insets bottom="2.0" left="15.0" right="15.0" top="2.0" />
+                </padding>
+                <FlowPane.margin>
+                    <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                </FlowPane.margin>
+            </Button>
+            <Button fx:id="button_paint" mnemonicParsing="false" onAction="#onButtonPaintClick" prefHeight="48.0" prefWidth="48.0">
+                <padding>
+                    <Insets bottom="2.0" left="15.0" right="15.0" top="2.0" />
+                </padding>
+                <FlowPane.margin>
+                    <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                </FlowPane.margin>
+            </Button>
+            <Button fx:id="button_text" mnemonicParsing="false" onAction="#onButtonTextClick" prefHeight="48" prefWidth="48">
+                <padding>
+                    <Insets bottom="2.0" left="15.0" right="15.0" top="2.0" />
+                </padding>
+                <FlowPane.margin>
+                    <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                </FlowPane.margin>
+            </Button>
+            <Button fx:id="button_circle" mnemonicParsing="false" onAction="#onButtonCircleClick" prefHeight="48" prefWidth="48">
+                <padding>
+                    <Insets bottom="2.0" left="15.0" right="15.0" top="2.0" />
+                </padding>
+                <FlowPane.margin>
+                    <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                </FlowPane.margin>
+            </Button>
+            <Button fx:id="button_rectangle" mnemonicParsing="false" onAction="#onButtonRectangleClick" prefHeight="48" prefWidth="48">
+                <padding>
+                    <Insets bottom="2.0" left="15.0" right="15.0" top="2.0" />
+                </padding>
+                <FlowPane.margin>
+                    <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                </FlowPane.margin>
+            </Button>
 
-        <Button onAction="#onButonAutoCLick" text="自定义形状"/>
+            <Button fx:id="button_mini" mnemonicParsing="false" prefHeight="48" prefWidth="48" onAction="#onButtonMiniClick">
+            <padding>
+                <Insets bottom="2.0" left="15.0" right="15.0" top="2.0" />
+            </padding>
+            <FlowPane.margin>
+                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+            </FlowPane.margin>
+        </Button>
+        </FlowPane>
+        <FlowPane layoutX="80" prefHeight="720" prefWidth="900">
+            <FlowPane fx:id="toolFlowPane" prefHeight="75.0" prefWidth="1000.0">
+                <FlowPane.margin>
+                    <Insets top="15.0" left="80" />
+                </FlowPane.margin>
+                <Label text="填充颜色" />
+                <ColorPicker fx:id="colorPicker" >
+                    <FlowPane.margin>
+                        <Insets right="15.0"  />
+                    </FlowPane.margin>
+                </ColorPicker>
+                <Label text="边框颜色" />
+                <ColorPicker fx:id="colorPicker_Line" >
+                    <FlowPane.margin>
+                        <Insets right="15.0"  />
+                    </FlowPane.margin>
+                </ColorPicker>
+                <Label text="边框" />
+                <Slider fx:id="slider" >
+                    <FlowPane.margin>
+                        <Insets right="15.0"  />
+                    </FlowPane.margin>
+                </Slider>
+                <Label text="角度" />
+                <Slider fx:id="slider_rotate" />
+            </FlowPane>
+            <MainPane fx:id="mainPane" prefHeight="600" prefWidth="900.0" stylesheets="css/pane.css">
+                <Canvas fx:id="canvas"  />
+            </MainPane>
+        </FlowPane>
+    </AnchorPane>
 
 
-    </FlowPane>
-
-
-    <FlowPane>
-        <Label text="填充颜色"/>
-        <ColorPicker fx:id="colorPicker"/>
-        <Label text="边框颜色"/>
-        <ColorPicker fx:id="colorPicker_Line"/>
-        <Label text="边框"/>
-        <Slider fx:id="slider"/>
-        <Label text="角度"/>
-        <Slider fx:id="slider_rotate"/>
-    </FlowPane>
 
 
 </VBox>

@@ -4,8 +4,11 @@ package customView;
  */
 
 
+import com.sun.javafx.geom.PickRay;
+import com.sun.javafx.scene.input.PickResultChooser;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.collections.ObservableList;
 import javafx.geometry.Bounds;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
@@ -16,10 +19,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
-import javafx.scene.shape.Ellipse;
-import javafx.scene.shape.Path;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.SVGPath;
+import javafx.scene.shape.*;
 import javafx.scene.text.Text;
 import tools.ProjectSaver;
 import tools.SHAPE;
@@ -31,38 +31,39 @@ public class DragBox extends Pane implements Serializable {
 
     private POINT cursor = POINT.OT;
     public Node node;
-    private Canvas canvas;
+    public Canvas canvas;
     private boolean isShitDown = false;
     private double mouseDragX, mouseDragY;
-    private boolean isMousePress = false;
+    protected boolean isMousePress = false;
     private double miniLen = 21;
     public Color paintFill, paintStroke;
     public double rotate = 0, strokeWidth = 0;
-    private MainPane.requestChoose chooseListener;
-    private boolean isLoadFromfile;
-    private boolean isConnerShow;
+    protected MainPane.requestChoose chooseListener;
+    private boolean isLoadFromfile, isCopy;
+    protected boolean isConnerShow;
+    private onDoubleClickListener onDoubleClickListener;
 
 
     //leftTop,top,rightTop......Bottom,rightBottom,others
     private enum POINT {
-        LT, T, RT, L, R, LB, B, RB, OT
+        LT, T, RT, L, R, LB, B, RB, DEFAUT, HAND, OT
     }
 
     //this view's position
-    public DoubleProperty X = new SimpleDoubleProperty(450);
-    public DoubleProperty Y = new SimpleDoubleProperty(200);
-    private double deltaX, deltaY;
+    public DoubleProperty X = new SimpleDoubleProperty(400);
+    public DoubleProperty Y = new SimpleDoubleProperty(250);
+    protected double deltaX, deltaY;
 
     //this view's height and width
     public DoubleProperty Width = new SimpleDoubleProperty(0);
     public DoubleProperty Height = new SimpleDoubleProperty(0);
-    public DoubleProperty Radius = new SimpleDoubleProperty(0);
 
-    public DragBox(DragBox dragBox){
-        Width.set(dragBox.getWidth());
-        Height.set(dragBox.getHeight());
-        X = new SimpleDoubleProperty(dragBox.getLayoutX()+10);
-        Y = new SimpleDoubleProperty(dragBox.getLayoutY()+10);
+    public DragBox(DragBox dragBox) {
+        isCopy = true;
+        Width.set(dragBox.getPrefWidth());
+        Height.set(dragBox.getPrefHeight());
+        X = new SimpleDoubleProperty(dragBox.getLayoutX() + 10);
+        Y = new SimpleDoubleProperty(dragBox.getLayoutY() + 10);
         this.rotate = dragBox.rotate;
         this.strokeWidth = dragBox.strokeWidth;
         this.type = dragBox.type;
@@ -74,6 +75,7 @@ public class DragBox extends Pane implements Serializable {
     public DragBox() {
         Width.set(100);
         Height.set(100);
+        isCopy = false;
         isLoadFromfile = false;
         init();
     }
@@ -90,14 +92,15 @@ public class DragBox extends Pane implements Serializable {
         paintFill = Color.color(fr, fg, fb, fa);
         paintStroke = Color.color(r, g, b, a);
         isLoadFromfile = true;
+        isCopy = false;
         init();
     }
 
     private SHAPE.TYPE type;
 
     private POINT switchPoint(MouseEvent event) {
-        if(!isConnerShow) {
-            cursor = POINT.OT;
+        if (!isConnerShow) {
+            cursor = POINT.DEFAUT;
             return cursor;
         }
         double x = event.getX();
@@ -252,14 +255,15 @@ public class DragBox extends Pane implements Serializable {
     }
 
     private void switchDrag(MouseEvent event) {
-        if(!isConnerShow) return;
+        if (!isConnerShow) return;
         mouseDragX = event.getSceneX();
         mouseDragY = event.getSceneY();
         double min;
         switch (cursor) {
             case LT:
-                double tempLTX = getLayoutX() - event.getSceneX() + getParent().getLayoutX();
-                double tempLTY = getLayoutY() - event.getSceneY() + getParent().getLayoutY();
+                double tempLTX = getLayoutX() - event.getSceneX() + getParent().getParent().getLayoutX();
+                double tempLTY = getLayoutY() - event.getSceneY() + getParent().getLayoutY() +
+                        getParent().getParent().getParent().getLayoutY();
 
                 if (event.isShiftDown()) {
                     isShitDown = true;
@@ -308,7 +312,8 @@ public class DragBox extends Pane implements Serializable {
                 setCursor(Cursor.NW_RESIZE);
                 break;
             case T:
-                double tempTY = getLayoutY() - event.getSceneY() + getParent().getLayoutY();
+                double tempTY = getLayoutY() - event.getSceneY() + getParent().getLayoutY() +
+                        getParent().getParent().getParent().getLayoutY();
 
                 if (getPrefHeight() + tempTY < miniLen) {
                     Y.set(Y.getValue() + getPrefHeight() - miniLen);
@@ -326,8 +331,9 @@ public class DragBox extends Pane implements Serializable {
                 setCursor(Cursor.N_RESIZE);
                 break;
             case RT:
-                double tempRTX = event.getSceneX() - getLayoutX() - getParent().getLayoutX();
-                double tempRTY = getLayoutY() - event.getSceneY() + getParent().getLayoutY();
+                double tempRTX = event.getSceneX() - getLayoutX() - getParent().getParent().getLayoutX();
+                double tempRTY = getLayoutY() - event.getSceneY() + getParent().getLayoutY() +
+                        getParent().getParent().getParent().getLayoutY();
 
 
                 if (event.isShiftDown()) {
@@ -354,7 +360,7 @@ public class DragBox extends Pane implements Serializable {
                 setCursor(Cursor.NE_RESIZE);
                 break;
             case L:
-                double tempLX = getLayoutX() - event.getSceneX() + getParent().getLayoutX();
+                double tempLX = getLayoutX() - event.getSceneX() + getParent().getParent().getLayoutX();
 
 
                 if (event.isShiftDown()) {
@@ -382,7 +388,7 @@ public class DragBox extends Pane implements Serializable {
                 setCursor(Cursor.W_RESIZE);
                 break;
             case R:
-                double tempRX = event.getSceneX() - getLayoutX() - getParent().getLayoutX();
+                double tempRX = event.getSceneX() - getLayoutX() - getParent().getParent().getLayoutX();
                 setPrefWidth(keepMiniLen(tempRX));
 
                 if (event.isShiftDown()) {
@@ -392,8 +398,8 @@ public class DragBox extends Pane implements Serializable {
                 setCursor(Cursor.E_RESIZE);
                 break;
             case LB:
-                double tempLBY = event.getSceneY() - getLayoutY() - getParent().getLayoutY();
-                double tempLBX = getLayoutX() - event.getSceneX() - getParent().getLayoutX();
+                double tempLBY = event.getY();
+                double tempLBX = getLayoutX() - event.getSceneX() + getParent().getParent().getLayoutX();
 
                 if (event.isShiftDown()) {
                     isShitDown = true;
@@ -421,18 +427,18 @@ public class DragBox extends Pane implements Serializable {
                 setCursor(Cursor.SW_RESIZE);
                 break;
             case B:
-                double tempBY = event.getSceneY() - getLayoutY() - getParent().getLayoutY();
+                double tempBY = event.getY();
                 setPrefHeight(keepMiniLen(tempBY));
 
-                if (isShitDown) {
+                if (event.isShiftDown()) {
                     isShitDown = true;
                     setPrefWidth(keepMiniLen(tempBY));
                 }
                 setCursor(Cursor.S_RESIZE);
                 break;
             case RB:
-                double tempX = event.getSceneX() - getLayoutX() - getParent().getLayoutX();
-                double tempY = event.getSceneY() - getLayoutY() - getParent().getLayoutY();
+                double tempX = event.getX();
+                double tempY = event.getY();
 
                 if (event.isShiftDown()) {
                     min = Math.min(tempX, tempY);
@@ -446,8 +452,8 @@ public class DragBox extends Pane implements Serializable {
                 setCursor(Cursor.SE_RESIZE);
                 break;
             default:
-                X.set(event.getSceneX() - deltaX - getParent().getLayoutX());
-                Y.set(event.getSceneY() - deltaY - getParent().getLayoutY());
+                X.set(event.getSceneX() - deltaX - getParent().getParent().getLayoutX());
+                Y.set(event.getSceneY() - deltaY - getParent().getParent().getParent().getLayoutY() - getParent().getLayoutY());
                 setCursor(Cursor.CLOSED_HAND);
                 break;
         }
@@ -492,14 +498,16 @@ public class DragBox extends Pane implements Serializable {
         }
     }
 
+
     /**
      * 向DragBox添加一般性节点时调用
-     * @param node 一般节点
+     *
+     * @param node            一般节点
      * @param onBuildListener 在构建节点时使用监听器可以使代码更加简洁
      */
     public void setContentNode(Node node, OnBuildListener onBuildListener) {
         this.node = node;
-        getChildren().add( node);
+        getChildren().add(0, node);
 
         if (onBuildListener != null) {
             onBuildListener.onBuild(node, this);
@@ -510,6 +518,10 @@ public class DragBox extends Pane implements Serializable {
             this.type = SHAPE.TYPE.RECT;
         } else if (this.node instanceof Text) {
             this.type = SHAPE.TYPE.TEXT;
+        } else if (this.node instanceof SVGPath) {
+            this.type = SHAPE.TYPE.SVG;
+        } else if (this.node instanceof Line) {
+            this.type = SHAPE.TYPE.LINE;
         }
         initNode();
     }
@@ -518,35 +530,35 @@ public class DragBox extends Pane implements Serializable {
 
     /**
      * 在添加svg型节点时调用
-     * @param path svg节点的字符信息
-     * @param fill svg节点的填充信息
+     *
+     * @param path   svg节点的字符信息
+     * @param fill   svg节点的填充信息
      * @param stroke svg节点的边框填充信息
      */
-    public void setSvgNode(String path, Paint fill, Paint stroke) {
+    public void setSvgNode(String path, Paint fill, Paint stroke, double strokeWidth, double rotate) {
         this.node = new SVGPath();
-        this.node.setRotate(rotate);
         svgPath = path;
         ((SVGPath) node).setContent(path);
         ((SVGPath) node).setSmooth(true);
+        ((SVGPath) node).setStrokeLineCap(StrokeLineCap.ROUND);
 
-        if (isLoadFromfile) {
-            ((SVGPath) node).setFill(paintFill);
-            ((SVGPath) node).setStroke(paintStroke);
-            ((SVGPath) node).setStrokeWidth(strokeWidth);
-        } else {
-            paintFill = (Color) fill;
-            paintStroke = (Color) stroke;
-            ((SVGPath) node).setFill(fill);
-            ((SVGPath) node).setStroke(stroke);
-            ((SVGPath) node).setStrokeWidth(5);
-        }
 
         Bounds bounds = node.boundsInLocalProperty().getValue();
 
         final double height = bounds.getHeight();
         final double width = bounds.getWidth();
         double S = 20;
-        this.type = SHAPE.TYPE.SVG;
+
+
+        if (isLoadFromfile || isCopy) {
+            setPrefWidth(Width.doubleValue());
+            setPrefHeight(Height.doubleValue());
+        } else {
+            setPrefWidth(100 * width / height);
+            this.type = SHAPE.TYPE.SVG;
+            setPrefWidth(width + S);
+            setPrefHeight(height + S);
+        }
 
         node.scaleYProperty().bind(heightProperty().
                 subtract(S).
@@ -567,7 +579,11 @@ public class DragBox extends Pane implements Serializable {
                 subtract(height / 2).
                 add(S / 2)
                 .subtract(bounds.getMinY()));
-        getChildren().add( node);
+        getChildren().add(0, node);
+        setColor((Color) fill);
+        setLineColor((Color) stroke);
+        setLineWidth(strokeWidth);
+        setNodeRotate(rotate);
         initNode();
     }
 
@@ -580,31 +596,14 @@ public class DragBox extends Pane implements Serializable {
     }
 
     /**
-     * 初始化DragBox的基础参数和设置各种监听函数
+     * 添加鼠标键盘相关的监听器
      */
-    private void init() {
-
-        setPrefWidth(Width.get());
-        setPrefHeight(Height.get());
-        layoutXProperty().bind(X);
-        layoutYProperty().bind(Y);
-
-
-        layoutBoundsProperty().addListener((observable, oldValue, newValue) -> {
-            double h = heightProperty().getValue();
-            double w = widthProperty().getValue();
-
-            Width.set(w);
-            Height.set(h);
-            Radius.set(Math.min(h / 2, w / 2));
-        });
-
-
+    protected void setKeyAndMouseListener() {
         setOnMouseMoved(this::setCursor);
 
 
         setOnMousePressed(event -> {
-            if(!isConnerShow)return;
+            if (!isConnerShow) return;
             if (chooseListener != null) {
                 chooseListener.request(this);
             }
@@ -625,7 +624,6 @@ public class DragBox extends Pane implements Serializable {
         });
 
 
-
         setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.SHIFT) {
                 isShitDown = true;
@@ -639,34 +637,72 @@ public class DragBox extends Pane implements Serializable {
                 updateConner();
             }
         });
+    }
 
+    /**
+     * 初始化DragBox的基础参数和设置各种监听函数
+     */
+    protected void init() {
+
+        setPrefWidth(Width.get());
+        setPrefHeight(Height.get());
+        layoutXProperty().bind(X);
+        layoutYProperty().bind(Y);
+
+
+        layoutBoundsProperty().addListener((observable, oldValue, newValue) -> {
+            double h = heightProperty().getValue();
+            double w = widthProperty().getValue();
+
+            Width.set(w);
+            Height.set(h);
+        });
+
+        setKeyAndMouseListener();
         initCanvas();
     }
 
     /**
      * 初始化背景绘画节点
      */
-    private void initCanvas(){
+    protected void initCanvas() {
         canvas = new Canvas();
+        //在Canvas高宽改变的时候，重新绘制
         canvas.heightProperty().addListener(observable -> {
             clearConner();
             drawConner();
         });
-
         canvas.widthProperty().addListener(observable -> {
             clearConner();
             drawConner();
         });
 
+        //canvas的高宽于box的高宽绑定在一起
         canvas.widthProperty().bind(Width);
         canvas.heightProperty().bind(Height);
         getChildren().add(canvas);
+
+        //无论Canvas接收到什么鼠标事件都传递给Box处理
+        canvas.setMouseTransparent(true);
+    }
+
+
+    /**
+     * 双击监听
+     */
+    public interface onDoubleClickListener {
+        void onDoubleClick(DragBox root, Node node);
+    }
+
+    public void setOnDoubleClickListener(onDoubleClickListener listener) {
+        this.onDoubleClickListener = listener;
     }
 
     /**
      * 初始化节点的鼠标事件监听函数
      */
-    private void initNode(){
+    protected void initNode() {
+
         node.setOnMouseMoved(event -> {
             setCursor(Cursor.HAND);
             cursor = POINT.OT;
@@ -680,13 +716,29 @@ public class DragBox extends Pane implements Serializable {
             deltaX = event.getX();
             deltaY = event.getY();
             isMousePress = true;
+
         });
+        canvas.setOnMouseClicked((MouseEvent event) -> {
+            System.out.println(type + " node click");
+            if (event.getClickCount() == 2) {
+                System.out.println(type + " node click twice");
+                if (null != onDoubleClickListener) {
+                    onDoubleClickListener.onDoubleClick(this, node);
+                }
+            }
+        });
+
     }
+
 
     /**
      * 设置图形节点为选中样式
      */
     public void drawConner() {
+        canvas.setMouseTransparent(false);
+        if (node != null) {
+            node.setMouseTransparent(true);
+        }
         isConnerShow = true;
 //        System.out.println("draw conner");
         double height = getPrefHeight();
@@ -723,7 +775,10 @@ public class DragBox extends Pane implements Serializable {
      * 设置图形节点为未选中样式
      */
     public void clearConner() {
-//        System.out.println("clear conner");
+        canvas.setMouseTransparent(true);
+        if (node != null) {
+            node.setMouseTransparent(false);
+        }
         isConnerShow = false;
         double height = getPrefHeight();
         double width = getPrefWidth();
@@ -734,6 +789,7 @@ public class DragBox extends Pane implements Serializable {
 
     /**
      * 添加选中监听器，并默认添加选中
+     *
      * @param listener
      */
     public void setChooseListener(MainPane.requestChoose listener) {
@@ -756,6 +812,8 @@ public class DragBox extends Pane implements Serializable {
             ((SVGPath) this.node).setFill(value);
         } else if (this.node instanceof Text) {
             ((Text) this.node).setFill(value);
+        } else if (this.node instanceof Line) {
+            ((Line) this.node).setFill(value);
         }
     }
 
@@ -774,8 +832,8 @@ public class DragBox extends Pane implements Serializable {
             ((SVGPath) this.node).setStroke(value);
         } else if (this.node instanceof Text) {
             ((Text) this.node).setStroke(value);
-        }else if(this.node instanceof Path){
-            ((Path)this.node).setStroke(value);
+        } else if (this.node instanceof Line) {
+            ((Line) this.node).setStroke(value);
         }
     }
 
@@ -794,8 +852,8 @@ public class DragBox extends Pane implements Serializable {
             ((SVGPath) this.node).setStrokeWidth(lineWidth);
         } else if (this.node instanceof Text) {
             ((Text) this.node).setStrokeWidth(lineWidth);
-        }else if(this.node instanceof Path){
-            ((Path)this.node).setStrokeWidth(lineWidth);
+        } else if (this.node instanceof Line) {
+            ((Line) this.node).setStrokeWidth(lineWidth);
         }
     }
 
@@ -806,31 +864,64 @@ public class DragBox extends Pane implements Serializable {
      */
     public void setNodeRotate(double rotate) {
         this.rotate = rotate;
+        if (node instanceof Line) {
+            return;
+        }
         this.node.setRotate(rotate);
     }
 
     /**
      * 用于序列化储存
+     *
      * @return 返回内部节点的所有参数
      */
     public ProjectSaver getData() {
-        double a = paintStroke.getOpacity();
-        double r = paintStroke.getRed();
-        double g = paintStroke.getGreen();
-        double b = paintStroke.getBlue();
-        double fa = paintFill.getOpacity();
-        double fr = paintFill.getRed();
-        double fg = paintFill.getGreen();
-        double fb = paintFill.getBlue();
+        double a = 0, r = 0, g = 0, b = 0, fa = 0, fr = 0, fg = 0, fb = 0;
+        if (paintStroke != null) {
+            a = paintStroke.getOpacity();
+            r = paintStroke.getRed();
+            g = paintStroke.getGreen();
+            b = paintStroke.getBlue();
+        }
+        if (paintFill != null) {
+            fa = paintFill.getOpacity();
+            fr = paintFill.getRed();
+            fg = paintFill.getGreen();
+            fb = paintFill.getBlue();
+        }
+
         ProjectSaver projectSaver = new ProjectSaver(getLayoutX(), getLayoutY(), getPrefWidth(), getPrefHeight(),
                 this.type, a, r, g, b, fa, fr, fg, fb, this.rotate, this.strokeWidth);
 
         if (node instanceof SVGPath) {
             projectSaver.setSvgPath(svgPath);
         } else if (node instanceof Text) {
-            projectSaver.setTextAndFont(((Text) node).getText(), ((Text) node).getFont().getSize());
+            projectSaver.setTextAndFont(((Text) node).getText(), ((Text) node).getFont().getSize(), ((Text) node).getFont().getName());
         }
 
         return projectSaver;
+    }
+
+    /**
+     * 重写自带方法实现鼠标事件的顺序传递
+     *
+     * @param pickRay
+     * @param result
+     */
+    @Override
+    protected void impl_pickNodeLocal(PickRay pickRay, PickResultChooser result) {
+        double boundsDistance = impl_intersectsBounds(pickRay);
+
+        if (!Double.isNaN(boundsDistance)) {
+            ObservableList<Node> children = getChildren();
+            for (int i = children.size() - 1; i >= 0; i--) {
+                children.get(i).impl_pickNode(pickRay, result);
+                if (result.isClosed()) {
+                    return;
+                }
+            }
+
+//            impl_intersects(pickRay, result);
+        }
     }
 }

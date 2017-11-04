@@ -3,105 +3,110 @@ package tools;
 import customView.DragBox;
 import customView.MainPane;
 import javafx.geometry.Bounds;
+import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Slider;
-import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
-import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
+import javafx.scene.shape.StrokeLineCap;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
 
 public class PaintBrush {
 
-    Paint paint;
+    Paint paint,paintFill;
     double strokeWidth;
-    public void paint(Canvas canvas, ColorPicker colorPicker, Slider slider, MainPane mainPane){
-        GraphicsContext gc = canvas.getGraphicsContext2D();
+    public void paint(Canvas canvas, ColorPicker colorPicker,
+                      ColorPicker colorPickerFill, Slider slider, MainPane mainPane){
+        Canvas mCanvas = new Canvas();
+        mCanvas.setHeight(canvas.getHeight());
+        mCanvas.setWidth(canvas.getWidth());
+
+        double dx = canvas.getLayoutX();
+        double dy = canvas.getLayoutY();
+
+        mCanvas.setLayoutY(dy);
+        mCanvas.setLayoutX(dx);
+
+        GraphicsContext gc = mCanvas.getGraphicsContext2D();
         ArrayList<Pair<Number,Number>> points = new ArrayList<>();
+        int AVG = 5;
 
+        gc.setMiterLimit(5);
+        mainPane.getChildren().add(mCanvas);
 
-        canvas.setOnMousePressed(e -> {
+        mCanvas.setOnMousePressed(e -> {
             paint = colorPicker.getValue();
+            paintFill = colorPickerFill.getValue();
             strokeWidth = slider.getValue();
 
             points.clear();
+            gc.setLineCap(StrokeLineCap.ROUND);
             gc.setStroke(paint);
             gc.setLineWidth(strokeWidth);
             gc.beginPath();
             e.consume();
         });
-        canvas.setOnMouseDragged(e -> {
-            points.add(new Pair<>(e.getX(),e.getY()));
-            gc.lineTo(e.getX(),e.getY());
+        mCanvas.setOnMouseDragged(e -> {
+            points.add(new Pair<>(e.getX()+dx,e.getY()+dy));
+            if(points.size() > AVG) {
+                double x=0,y=0;
+                for(int j=points.size()-AVG;j<points.size();j++){
+                    x += points.get(j).getKey().doubleValue();
+                    y += points.get(j).getValue().doubleValue();
+                }
+                gc.lineTo(x/AVG-dx, y/AVG-dy);
+            }else{
+                gc.lineTo(e.getX(),e.getY());
+            }
             gc.stroke();
             e.consume();
-
         });
 
 
-        canvas.setOnMouseReleased(e ->{
+        mCanvas.setOnMouseReleased(e ->{
+            mainPane.getChildren().remove(mCanvas);
+
             Path fx_path = new Path();
             fx_path.setSmooth(true);
-            boolean first = true;
-            for (Pair<Number, Number> i :
-                    points) {
-                if(first){
-                    first = false;
-                    fx_path.getElements().add(new MoveTo(i.getKey().doubleValue(),i.getValue().doubleValue()));
-                }else {
-                    fx_path.getElements().add(new LineTo(i.getKey().doubleValue(), i.getValue().doubleValue()));
-                }
+            if(points.size() < AVG){
+                e.consume();
+                return;
             }
-            DragBox box = new DragBox();
+            StringBuilder path= new StringBuilder();
 
-            box.setContentNode(fx_path, (node, root) -> {
-                Bounds bounds = ((Path)node).boundsInLocalProperty().getValue();
-                final double height = bounds.getHeight();
-                final double width = bounds.getWidth();
-                double S = 20;
+            fx_path.getElements().add(new MoveTo(points.get(0).getKey().doubleValue(),
+                    points.get(0).getValue().doubleValue()));
 
+            path.append(String.format("M%f,%f",points.get(0).getKey().doubleValue(),
+                    points.get(0).getValue().doubleValue()));
+            for(int i=0;i<points.size()-AVG;i++){
+                double x = 0;
+                double y = 0;
+                for(int j=0+i;j<AVG+i;j++){
+                    x += points.get(j).getKey().doubleValue();
+                    y += points.get(j).getValue().doubleValue();
+                }
 
-                root.X.set(bounds.getMinX()-10);
-                root.Y.set(bounds.getMinY()-10);
-                root.setPrefWidth(width+S);
-                root.setPrefHeight(height+S);
+                path.append(String.format("L%f,%f", x / AVG, y / AVG));
+            }
 
-                node.scaleYProperty().bind(root.heightProperty().
-                        subtract(S).
-                        divide(height));
-                node.scaleXProperty().bind(root.widthProperty().
-                        subtract(S).
-                        divide(width));
+            DragBox dragBox = new DragBox();
+            dragBox.setSvgNode(path.toString(), colorPickerFill.getValue(), colorPicker.getValue(),
+                    slider.getValue(),0);
+            Bounds bounds = dragBox.node.boundsInLocalProperty().getValue();
+            dragBox.X.set(bounds.getMinX()-10);
+            dragBox.Y.set(bounds.getMinY()-10);
+            mainPane.getChildren()
+                    .add(dragBox);
+            mainPane.setChooseListener(dragBox);
+            mainPane.requestFocus();
+            mainPane.setCursor(Cursor.DEFAULT);
 
-                node.layoutXProperty().bind(root.widthProperty().
-                        subtract(S).
-                        divide(2).
-                        subtract(width/2).
-                        add(S/2).
-                        subtract(bounds.getMinX()));
-                node.layoutYProperty().bind(root.heightProperty().
-                        subtract(S).
-                        divide(2).
-                        subtract(height/2).
-                        add(S/2)
-                        .subtract(bounds.getMinY()));
-                root.setLineColor((Color)paint);
-                root.setLineWidth(strokeWidth);
-
-                mainPane.getChildren().add(box);
-                mainPane.setChooseListener(box);
-//                root.clearConner();
-            });
-            gc.clearRect(0,0,1000,700);
-
-            canvas.setOnMousePressed(null);
-            canvas.setOnMouseDragged(null);
-            canvas.setOnMouseReleased(null);
             e.consume();
         });
 

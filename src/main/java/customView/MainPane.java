@@ -16,9 +16,12 @@ public class MainPane extends javafx.scene.layout.Pane{
     private Color backGround;
 
     public MainPane(){
+
         setOnKeyReleased(event -> {
             if(event.getCode() == KeyCode.DELETE || event.getCode() == KeyCode.BACK_SPACE){
+                System.out.println("delete2");
                 if(choosenNode != null){
+                    System.out.println("delete2 have choocenNode");
                     getChildren().remove(choosenNode);
                     choosenNode = null;
                 }
@@ -27,12 +30,13 @@ public class MainPane extends javafx.scene.layout.Pane{
     }
 
 
+
+
     public void setChooseListener(DragBox box){
         box.setChooseListener(this.requestChooseListener);
     }
     public interface requestChoose{
         void request(DragBox node);
-
     }
 
     public void chooseNothing(){
@@ -82,7 +86,6 @@ public class MainPane extends javafx.scene.layout.Pane{
         if(choosenNode != null){
             getChildren().remove(choosenNode);
             getChildren().add(1,choosenNode);
-            System.out.println(choosenNode);
         }
     }
 

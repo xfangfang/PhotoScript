@@ -11,11 +11,11 @@ public class ImageBox extends DragBox {
     private ContextMenu contextFileMenu = new ContextMenu();
     public ImageBox(){
         super();
-        init();
+        ini();
     }
     public ImageBox(double x, double y, double w, double h, SHAPE.TYPE type, double rotate, double a, double r, double g, double b, double fa, double fr, double fg, double fb){
         super(x, y, w,h, type, rotate,0,a, r, g, b, fa, fr, fg, fb);
-        init();
+        ini();
     }
     @Override
     public ProjectSaver getData(){
@@ -40,7 +40,7 @@ public class ImageBox extends DragBox {
     }
 
 
-    private void init(){
+    private void ini(){
         MenuItem item1 = new MenuItem("明亮");
         item1.setOnAction(e -> imagePixeOperator(0));
 
@@ -73,8 +73,8 @@ public class ImageBox extends DragBox {
 
     public void imagePixeOperator(int type){
         ImageView tempImageView = null;
-        if(ImageView.class.isInstance(getChildren().get(1))) {
-            tempImageView = (ImageView) getChildren().get(1);
+        if(ImageView.class.isInstance(getChildren().get(0))) {
+            tempImageView = (ImageView) getChildren().get(0);
         }else{
             System.out.print("fail");
             return;

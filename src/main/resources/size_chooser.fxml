@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<VBox prefHeight="349.0" prefWidth="257.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="SizeChooser">
+ <children>
+    <Label prefHeight="32.0" prefWidth="255.0" text="        选择画布大小:">
+         <font>
+            <Font name="Microsoft JhengHei Bold" size="24.0" />
+         </font>
+        <VBox.margin>
+            <Insets top="20.0" />
+        </VBox.margin>
+    </Label>
+    <AnchorPane prefHeight="272.0" prefWidth="250.0">
+       <children>
+          <Button fx:id="size1" layoutX="25.0" layoutY="40.0" prefHeight="40.0" prefWidth="200.0" text="  800*600" stylesheets="css/button_style.css" textAlignment="CENTER" onAction="#size1Click"/>
+          <Button fx:id="size2" layoutX="25.0" layoutY="100.0" prefHeight="40.0" prefWidth="200.0" text=" 700*500" stylesheets="css/button_style.css" textAlignment="CENTER" onAction="#size2Click"/>
+          <Button fx:id="size3" layoutX="25.0" layoutY="160.0" prefHeight="40.0" prefWidth="200.0" text=" 640*480" stylesheets="css/button_style.css" textAlignment="CENTER" onAction="#size3Click"/>
+          <Button fx:id="size4" layoutX="25.0" layoutY="220.0" prefHeight="40.0" prefWidth="200.0" text=" 480*320" stylesheets="css/button_style.css" textAlignment="CENTER" onAction="#size4Click"/>
+       </children>
+    </AnchorPane>
+ </children>
+</VBox>
