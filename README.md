@@ -1,6 +1,8 @@
 # PhotoScript
 JAVAFX 制作绘图软件
 
+![](http://o7sehhiee.bkt.clouddn.com/FlT_iU-5v-gc8U-3qmmKQHmSMmAi)
+
 基本功能：
 
 绘制图形
@@ -9,8 +11,6 @@ JAVAFX 制作绘图软件
 svg图形添加
 
 截图如下：
-
-![](http://o7sehhiee.bkt.clouddn.com/FlT_iU-5v-gc8U-3qmmKQHmSMmAi)
 
 ![](http://o7sehhiee.bkt.clouddn.com/FgvAxFdzwJ78LdXBZMFZci5vyBZQ)
 
